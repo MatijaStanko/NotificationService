@@ -1,2 +1,7 @@
 fastapi~=0.138.0
 pydantic-settings~=2.14.2
+sqlmodel
+
+
+sqlalchemy
+psycopg2-binary
