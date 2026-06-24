@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Body, HTTPException
 from sqlmodel import Session
 
 from app.database import get_session
+from app.models import NotificationRequest
 from repositories.notification_request_repository import NotificationRequestRepository
 from repositories.notification_template_repository import NotificationTemplateRepository
 from repositories.notification_type_repository import NotificationTypeRepository
@@ -11,14 +12,14 @@ from services.notification_request_service import NotificationRequestService
 from services.notification_template_service import NotificationTemplateService
 from services.channel_config_service import ChannelConfigService
 from services.notification_type_service import NotificationTypeService
-from app.schemas import NotificationCreate, NotificationResponse
+from app.schemas import NotificationCreate, NotificationShortResponse, NotificationDetailedResponse
 
 router = APIRouter(
     prefix="/notifications",
     tags=["notifications"]
 )
 
-@router.post("/", response_model=NotificationResponse)
+@router.post("/", response_model=NotificationShortResponse)
 def create_notification(
     notification_data: NotificationCreate= Body(
         example={
@@ -68,12 +69,54 @@ def create_notification(
        raise HTTPException(status_code=400, detail=str(error))
 
 
-   return NotificationResponse(
+   return NotificationShortResponse(
        id = notification.id,
        status = notification.status,
        channel=notification.channel,
        recipient=notification.recipient,
    )
+
+@router.get(
+    "/{notification_request_id}",
+    response_model=NotificationDetailedResponse
+)
+def get_notification_request_by_id(
+    notification_request_id: int,
+    session: Session = Depends(get_session)
+) -> NotificationDetailedResponse:
+
+    notification_request_repository = NotificationRequestRepository(session)
+
+    notification_request_service = NotificationRequestService(
+        notification_request_repository = notification_request_repository
+    )
+
+    try:
+        notification_request = notification_request_service.get_by_id(
+            notification_request_id = notification_request_id
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+
+    return NotificationDetailedResponse(
+        id=notification_request.id,
+        source_service=notification_request.source_service,
+        notification_type_id=notification_request.notification_type_id,
+        template_id=notification_request.template_id,
+        channel=notification_request.channel,
+        recipient=notification_request.recipient,
+        template_data=notification_request.template_data,
+        rendered_subject=notification_request.rendered_subject,
+        rendered_body=notification_request.rendered_body,
+        status=notification_request.status,
+        error_msg=notification_request.error_msg,
+        created_at=notification_request.created_at,
+        sent_at=notification_request.sent_at,
+        updated_at=notification_request.updated_at,
+    )
+
+
+
 
 @router.get("/")
 def get_notifications():

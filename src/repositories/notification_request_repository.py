@@ -12,3 +12,6 @@ class NotificationRequestRepository:
         self.session.commit()
         self.session.refresh(notificationReq)
         return notificationReq
+
+    def get_by_id(self, notification_request_id: int) -> type[NotificationRequest] | None:
+        return self.session.get(NotificationRequest, notification_request_id)

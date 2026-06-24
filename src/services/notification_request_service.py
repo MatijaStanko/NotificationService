@@ -10,3 +10,11 @@ class NotificationRequestService:
             notification_request: NotificationRequest
     ) -> NotificationRequest:
         return self.notification_request_repository.create(notification_request)
+
+    def get_by_id(self, notification_request_id: int) -> type[NotificationRequest]:
+        notification_request = self.notification_request_repository.get_by_id(notification_request_id)
+
+        if notification_request is None:
+            raise ValueError("Notification request does not exists")
+
+        return notification_request
