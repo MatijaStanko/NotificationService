@@ -18,3 +18,6 @@ class NotificationRequestService:
             raise ValueError("Notification request does not exists")
 
         return notification_request
+
+    def get_pending_requests(self, limit: int = 10) -> list[NotificationRequest]:
+        return self.notification_request_repository.get_pending_request(limit)

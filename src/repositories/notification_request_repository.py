@@ -1,4 +1,4 @@
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.models import NotificationRequest
 
@@ -15,3 +15,14 @@ class NotificationRequestRepository:
 
     def get_by_id(self, notification_request_id: int) -> type[NotificationRequest] | None:
         return self.session.get(NotificationRequest, notification_request_id)
+
+    def get_pending_request(self, limit: int = 10) -> list[NotificationRequest]:
+        statement = (
+            select(NotificationRequest)
+            .where(NotificationRequest.status == "pending")
+            .order_by(NotificationRequest.created_at)
+            .limit(limit)
+        )
+
+        return list(self.session.exec(statement).all())
+
