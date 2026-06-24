@@ -7,8 +7,8 @@ class NotificationRequestRepository:
     def __init__(self, session: Session):
         self.session = session
 
-    def create(self, notification: NotificationRequest):
-        self.session.add(notification)
+    def create(self, notificationReq: NotificationRequest):
+        self.session.add(notificationReq)
         self.session.commit()
-        self.session.refresh(notification)
-        return notification
+        self.session.refresh(notificationReq)
+        return notificationReq
