@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Body, HTTPException
 from sqlmodel import Session
 
 from app.database import get_session
@@ -20,7 +20,18 @@ router = APIRouter(
 
 @router.post("/", response_model=NotificationResponse)
 def create_notification(
-    notification_data: NotificationCreate,
+    notification_data: NotificationCreate= Body(
+        example={
+            "source_service": "user-service",
+            "channel": "email",
+            "notification_type": "welcome_user",
+            "recipient": "matija@example.com",
+            "template_data": {
+                "first_name": "Matija",
+                "activation_link": "https://example.com/activate/123"
+            }
+        }
+    ),
     session: Session = Depends(get_session)
 ):
    notification_request_repository = NotificationRequestRepository(session)
