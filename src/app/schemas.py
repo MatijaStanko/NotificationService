@@ -32,3 +32,5 @@ class NotificationDetailedResponse(BaseModel):
     sent_at: datetime | None
     updated_at: datetime
 
+class NotificationFailedRequest(BaseModel):
+    error_msg: str
