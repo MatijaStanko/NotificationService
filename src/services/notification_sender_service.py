@@ -1,19 +1,18 @@
 from app.models import NotificationRequest
 from services.notification_request_service import NotificationRequestService
 from services.channel_config_service import ChannelConfigService
-from services.senders.email_sender import EmailSender
-
+from services.senders.sender_factory import SenderFactory
 
 class NotificationSenderService:
     def __init__(
             self,
             notification_request_service: NotificationRequestService,
             channel_config_service: ChannelConfigService,
-            email_sender: EmailSender
+            sender_factory: SenderFactory,
     ):
         self.notification_request_service = notification_request_service
         self.channel_config_service = channel_config_service
-        self.email_sender = email_sender
+        self.sender_factory = sender_factory
 
     def send_notification(self, notification_request_id: int) -> NotificationRequest:
         notification_request = self.notification_request_service.mark_as_processing(
@@ -25,7 +24,7 @@ class NotificationSenderService:
                 channel=notification_request.channel
             )
 
-            sender = self._get_sender(notification_request.channel)
+            sender = self.sender_factory.get_sender(notification_request.channel)
 
             sender.send(
                 notification_request=notification_request,
@@ -41,12 +40,6 @@ class NotificationSenderService:
                 notification_request_id=notification_request_id,
                 error_msg=str(error)
             )
-
-    def _get_sender(self, channel : str):
-        if channel == "email":
-            return self.email_sender
-
-        raise ValueError(f"Unsupported notification channel: {channel}")
 
     def process_pending_notifications(self, limit: int = 10) -> list[NotificationRequest]:
         pending_notifications = self.notification_request_service.get_pending_requests(limit=limit)

@@ -15,13 +15,5 @@ app = FastAPI(
 def on_startup():
     create_db_and_tables()
 
-@app.get("/health")
-def health_check():
-    return {
-        "status": "ok",
-        "service" : settings.app_name,
-        "version" : settings.app_version
-    }
-
 app.include_router(notification_processing_router.router)
 app.include_router(notification_request_router.router)

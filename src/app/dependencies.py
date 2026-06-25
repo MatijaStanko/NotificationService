@@ -15,6 +15,7 @@ from services.notification_sender_service import NotificationSenderService
 from services.notification_template_service import NotificationTemplateService
 from services.notification_type_service import NotificationTypeService
 from services.senders.email_sender import EmailSender
+from services.senders.sender_factory import SenderFactory
 
 def get_notification_request_service(
     session: Session = Depends(get_session)
@@ -72,8 +73,12 @@ def get_notification_sender_service(
 
     email_sender = EmailSender()
 
+    sender_factory = SenderFactory(
+        email_sender=email_sender,
+    )
+
     return NotificationSenderService(
         notification_request_service=notification_request_service,
         channel_config_service=channel_config_service,
-        email_sender=email_sender,
+        sender_factory=sender_factory,
     )
