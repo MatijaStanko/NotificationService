@@ -1,7 +1,41 @@
+from abc import ABC, abstractmethod
 from app.models import NotificationRequest
 from repositories.notification_request_repository import NotificationRequestRepository
 
-class NotificationRequestService:
+class INotificationRequestService(ABC):
+    @abstractmethod
+    def create(self, notification_request: NotificationRequest) -> NotificationRequest:
+        pass
+
+    @abstractmethod
+    def get_by_id(self, notification_request_id: int) -> type[NotificationRequest]:
+        pass
+
+    @abstractmethod
+    def get_pending_request(self, limit: int) -> type[NotificationRequest]:
+        pass
+
+    @abstractmethod
+    def mark_as_processing(self, notification_request: NotificationRequest) -> NotificationRequest:
+        pass
+
+    @abstractmethod
+    def mark_as_sent(self, notification_request_id: int) -> NotificationRequest:
+        pass
+
+    @abstractmethod
+    def mark_as_failed(self, notification_request_id: int, error_msg: str) -> NotificationRequest:
+        pass
+
+    @abstractmethod
+    def delete_by_id(self, notification_request_id: int) -> None:
+        pass
+
+    @abstractmethod
+    def delete_all(self) -> int:
+        pass
+
+class NotificationRequestService(INotificationRequestService):
     def __init__(self, notification_request_repository: NotificationRequestRepository):
         self.notification_request_repository = notification_request_repository
 

@@ -1,7 +1,31 @@
+from abc import ABC, abstractmethod
+
 from app.models import NotificationTemplate
 from repositories.notification_template_repository import NotificationTemplateRepository
 
-class NotificationTemplateService:
+class INotificationTemplateService(ABC):
+    @abstractmethod
+    def get_active_template(self, notification_type_id : int, channel_id : int) -> NotificationTemplate:
+        pass
+
+    @abstractmethod
+    def validate_required_variables(self, required_variables: dict, template_data: dict) -> None:
+        pass
+
+    @abstractmethod
+    def render_subject(self, subject_template : str | None, template_data : dict) -> None:
+        pass
+
+    @abstractmethod
+    def render_body(self, body_template : str | None, template_data : dict) -> None:
+        pass
+
+    @abstractmethod
+    def render_template(self, template : str | None, template_data : dict) -> str | None:
+        pass
+
+
+class NotificationTemplateService(INotificationTemplateService):
     def __init__(self, notification_template_repository: NotificationTemplateRepository):
         self.notification_template_repository = notification_template_repository
 

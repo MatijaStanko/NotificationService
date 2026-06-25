@@ -1,8 +1,15 @@
+from abc import ABC, abstractmethod
 from app.models import NotificationType
 from repositories.notification_type_repository import NotificationTypeRepository
 
 
-class NotificationTypeService:
+class INotificationTypeService(ABC):
+
+    @abstractmethod
+    def get_active_by_code(self, code: str) -> NotificationType:
+        pass
+
+class NotificationTypeService(INotificationTypeService):
     def __init__(self, notification_type_repository: NotificationTypeRepository):
         self.notification_type_repository = notification_type_repository
 

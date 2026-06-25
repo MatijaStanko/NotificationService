@@ -1,10 +1,44 @@
+from abc import ABC, abstractmethod
 from datetime import datetime
 from sqlmodel import Session, select
 
 from app.models import NotificationRequest
 
+class INotificationRequestRepository(ABC):
 
-class NotificationRequestRepository:
+    @abstractmethod
+    def create(self, notificationReq: NotificationRequest):
+        pass
+
+    @abstractmethod
+    def get_by_id(self, notification_request_id: int) -> type[NotificationRequest] | None:
+        pass
+
+    @abstractmethod
+    def get_pending_request(self, limit: int = 10) -> list[NotificationRequest]:
+        pass
+
+    @abstractmethod
+    def mark_as_processing(self, notification_request: NotificationRequest) -> NotificationRequest:
+        pass
+
+    @abstractmethod
+    def mark_as_sent(self, notification_request: NotificationRequest) -> NotificationRequest:
+        pass
+
+    @abstractmethod
+    def mark_as_failed(self, notification_request: NotificationRequest, error_msg: str) -> NotificationRequest:
+        pass
+
+    @abstractmethod
+    def delete_by_id(self, notification_request_id: int) -> None:
+        pass
+
+    @abstractmethod
+    def delete_all(self) -> int:
+        pass
+
+class NotificationRequestRepository(INotificationRequestRepository):
     def __init__(self, session: Session):
         self.session = session
 

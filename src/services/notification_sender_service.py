@@ -6,9 +6,20 @@ from services.senders.email_sender import EmailSender
 from abc import ABC, abstractmethod
 
 class INotificationSenderService(ABC):
-    @abstractmethod
-    def send_notification(self, notification_request_id: int) -> NotificationRequest:
-        """" send notification """
+    class INotificationSenderService(ABC):
+        @abstractmethod
+        def send_notification(
+                self,
+                notification_request_id: int,
+        ) -> NotificationRequest:
+            pass
+
+        @abstractmethod
+        def process_pending_notifications(
+                self,
+                limit: int = 10,
+        ) -> list[NotificationRequest]:
+            pass
 
 
 class NotificationSenderService(INotificationSenderService):

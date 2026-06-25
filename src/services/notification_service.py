@@ -1,3 +1,5 @@
+from abc import ABC, abstractmethod
+
 from app.models import NotificationRequest
 from app.schemas import NotificationCreate
 from services.notification_type_service import NotificationTypeService
@@ -5,8 +7,14 @@ from services.notification_template_service import NotificationTemplateService
 from services.channel_config_service import ChannelConfigService
 from services.notification_request_service import NotificationRequestService
 
+class INotificationSenderService(ABC):
 
-class NotificationService:
+    @abstractmethod
+    def create_notification(self, data : NotificationCreate) -> NotificationRequest:
+        pass
+
+
+class NotificationService(INotificationSenderService):
     def __init__(
             self,
             notification_request_service: NotificationRequestService,
