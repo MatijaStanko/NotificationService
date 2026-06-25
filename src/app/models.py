@@ -20,7 +20,7 @@ class NotificationTemplate(SQLModel, table=True):
             "notification_type_id",
             "channel_id",
             name="uniq_notification_template_type_channel"
-        )
+        ),
     )
 
     id: Optional[int] = Field(default=None, primary_key=True)

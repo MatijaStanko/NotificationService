@@ -9,7 +9,7 @@ from routers import notification_request_router, notification_sending_router, no
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_db_and_tables()
+#    create_db_and_tables()
     yield
 app = FastAPI(
     title = settings.app_name,
