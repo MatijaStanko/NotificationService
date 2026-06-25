@@ -3,8 +3,15 @@ from services.notification_request_service import NotificationRequestService
 from services.channel_config_service import ChannelConfigService
 from services.senders.email_sender import EmailSender
 
+from abc import ABC, abstractmethod
 
-class NotificationSenderService:
+class INotificationSenderService(ABC):
+    @abstractmethod
+    def send_notification(self, notification_request_id: int) -> NotificationRequest:
+        """" send notification """
+
+
+class NotificationSenderService(INotificationSenderService):
     def __init__(
             self,
             notification_request_service: NotificationRequestService,

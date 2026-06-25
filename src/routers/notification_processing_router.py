@@ -33,7 +33,7 @@ def process_pending_notification_requests(
         notification_sender_service: NotificationSenderService = Depends(get_notification_sender_service)
 ):
     return notification_sender_service.process_pending_notifications(limit=limit)
-@router.post(
+@router.patch(
     "/{notification_request_id}/processing",
     response_model=NotificationDetailedResponse,
     summary="Mark notification request as processing",
@@ -53,7 +53,7 @@ def mark_notification_request_as_processing(
 
     return notification_request
 
-@router.post(
+@router.patch(
     "/{notification_request_id}/sent",
     response_model=NotificationDetailedResponse,
     summary="Mark notification request as sent",
@@ -74,7 +74,7 @@ def mark_notification_request_as_sent(
     return notification_request
 
 
-@router.post(
+@router.patch(
     "/{notification_request_id}/failed",
     response_model=NotificationDetailedResponse,
     summary="Mark notification request as failed",
