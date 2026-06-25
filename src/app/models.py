@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Column
+from sqlalchemy import Column, UniqueConstraint
 from sqlmodel import SQLModel, Field
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -14,6 +14,14 @@ class NotificationType(SQLModel, table=True):
 
 class NotificationTemplate(SQLModel, table=True):
     __tablename__ = "notification_templates"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "notification_type_id",
+            "channel_id",
+            name="uniq_notification_template_type_channel"
+        )
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
     notification_type_id : int = Field(foreign_key="notification_types.id")

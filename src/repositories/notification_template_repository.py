@@ -22,4 +22,4 @@ class NotificationTemplateRepository(INotificationTemplateRepository):
                      .where(NotificationTemplate.notification_type_id == notification_type_id)
                      .where(NotificationTemplate.channel_id == channel_id)
                      )
-        return self.session.exec(statement).first()
+        return self.session.exec(statement).one_or_none()
