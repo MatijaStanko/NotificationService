@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
+
 
 class NotificationCreate(BaseModel):
     source_service: str | None = None
@@ -11,12 +12,16 @@ class NotificationCreate(BaseModel):
     template_data: dict[str, Any] = {}
 
 class NotificationShortResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     status: str
     channel: str
     recipient: str
 
 class NotificationDetailedResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     source_service: str | None
     notification_type_id: int

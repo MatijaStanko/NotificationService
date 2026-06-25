@@ -48,5 +48,17 @@ class NotificationSenderService:
 
         raise ValueError(f"Unsupported notification channel: {channel}")
 
+    def process_pending_notifications(self, limit: int = 10) -> list[NotificationRequest]:
+        pending_notifications = self.notification_request_service.get_pending_requests(limit=limit)
 
+        processed_notifications = []
+
+        for notification_request in pending_notifications:
+            processed_notification = self.send_notification(
+                notification_request_id=notification_request.id
+            )
+
+            processed_notifications.append(processed_notification)
+
+        return processed_notifications
 
