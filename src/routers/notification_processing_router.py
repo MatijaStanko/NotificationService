@@ -4,7 +4,11 @@ from sqlmodel import Session
 from app.database import get_session
 from app.schemas import NotificationDetailedResponse, NotificationFailedRequest
 from repositories.notification_request_repository import NotificationRequestRepository
+from repositories.channel_config_repository import ChannelConfigRepository
 from services.notification_request_service import NotificationRequestService
+from services.channel_config_service import ChannelConfigService
+from services.notification_sender_service import NotificationSenderService
+from services.senders.email_sender import EmailSender
 
 router = APIRouter(
     prefix="/notifications",
@@ -117,5 +121,38 @@ def mark_notification_request_as_failed(
         )
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
+
+    return map_to_detailed_response(notification_request)
+
+@router.post(
+    "/{notification_request_id}/send",
+    response_model=NotificationDetailedResponse
+)
+def send_notification_request(
+    notification_request_id: int,
+    session: Session = Depends(get_session),
+):
+    notification_request_repository = NotificationRequestRepository(session)
+    channel_config_repository = ChannelConfigRepository(session)
+
+    notification_request_service = NotificationRequestService(
+        notification_request_repository=notification_request_repository,
+    )
+
+    channel_config_service = ChannelConfigService(
+        channel_config_repository=channel_config_repository,
+    )
+
+    email_sender = EmailSender()
+
+    notification_sender_service = NotificationSenderService(
+        notification_request_service=notification_request_service,
+        channel_config_service=channel_config_service,
+        email_sender=email_sender,
+    )
+
+    notification_request = notification_sender_service.send_notification(
+        notification_request_id
+    )
 
     return map_to_detailed_response(notification_request)
