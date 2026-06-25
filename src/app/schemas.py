@@ -39,3 +39,6 @@ class NotificationDetailedResponse(BaseModel):
 
 class NotificationFailedRequest(BaseModel):
     error_msg: str
+
+class DeleteAllNotificationRequestsResponse(BaseModel):
+    deleted_count: int

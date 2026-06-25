@@ -2,10 +2,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app import models
+
 from app.config import settings
 from app.database import create_db_and_tables
-from routers import notification_request_router, notification_processing_router
+from routers import notification_request_router, notification_sending_router, notification_status_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -25,5 +25,6 @@ def health_check():
         "version" : settings.app_version
     }
 
-app.include_router(notification_processing_router.router)
+app.include_router(notification_sending_router.router)
+app.include_router(notification_status_router.router)
 app.include_router(notification_request_router.router)

@@ -63,3 +63,22 @@ class NotificationRequestRepository:
         self.session.refresh(notification_request)
 
         return notification_request
+
+    def delete_by_id(self, notification_request: NotificationRequest) -> None:
+        self.session.delete(notification_request)
+        self.session.commit()
+
+
+    def delete_all(self) -> int:
+        notification_requests = self.session.exec(
+            select(NotificationRequest)
+        ).all()
+
+        deleted_count = len(notification_requests)
+
+        for notification_request in notification_requests:
+            self.session.delete(notification_request)
+
+        self.session.commit()
+
+        return deleted_count

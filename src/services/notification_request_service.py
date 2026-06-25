@@ -52,3 +52,11 @@ class NotificationRequestService:
             notification_request = notification_request,
             error_msg = error_msg
         )
+
+    def delete_by_id(self, notification_request_id: int) -> None:
+        notification_request = self.get_by_id(notification_request_id)
+
+        self.notification_request_repository.delete_by_id(notification_request)
+
+    def delete_all(self) -> int:
+        return self.notification_request_repository.delete_all()

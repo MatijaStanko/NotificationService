@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, Query, HTTPException
 
-from app.schemas import  NotificationCreate, NotificationDetailedResponse,  NotificationShortResponse
+from app.schemas import  NotificationCreate, NotificationDetailedResponse,  NotificationShortResponse, DeleteAllNotificationRequestsResponse
 
-from app.dependencies import get_notification_request_service, get_notification_service
+from dependencies.notification_request_dependencies import get_notification_request_service, get_notification_service
 from services.notification_request_service import NotificationRequestService
 from services.notification_service import NotificationService
 
@@ -42,6 +42,18 @@ def create_notification(
 
     return notification_request
 
+@router.get(
+    "/pending",
+    response_model=list[NotificationDetailedResponse],
+    summary="Get pending notification requests",
+)
+def get_pending_notification_requests(
+    limit: int = Query(default=10, ge=1, le=100),
+    notification_request_service: NotificationRequestService = Depends(
+        get_notification_request_service
+    ),
+):
+    return notification_request_service.get_pending_requests(limit)
 
 @router.get(
     "/{notification_request_id}",
@@ -62,3 +74,37 @@ def get_notification_request_by_id(
         raise HTTPException(status_code=404, detail=str(error))
 
     return notification_request
+
+@router.delete(
+    "/{notification_request_id}",
+    status_code=204,
+    summary="Delete notification request by ID"
+)
+def delete_notification_request_by_id(
+        notification_request_id: int,
+        notification_request_service : NotificationRequestService= Depends(
+            get_notification_request_service
+        )
+):
+    try:
+        notification_request_service.delete_by_id(
+            notification_request_id = notification_request_id
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error))
+
+@router.delete(
+    "/",
+    response_model=DeleteAllNotificationRequestsResponse,
+    summary="Delete all notification requests",
+)
+def delete_all_notification_requests(
+    notification_request_service: NotificationRequestService = Depends(
+        get_notification_request_service
+    ),
+):
+    deleted_count = notification_request_service.delete_all()
+
+    return DeleteAllNotificationRequestsResponse(
+        deleted_count=deleted_count,
+    )
