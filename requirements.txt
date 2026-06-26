@@ -1,10 +1,13 @@
 fastapi~=0.138.0
 pydantic-settings~=2.14.2
 sqlmodel
-
+uvicorn
 
 sqlalchemy
 psycopg2-binary
+pydantic-settings
+python-dotenv
+email-validator
 
 pydantic[email]
 

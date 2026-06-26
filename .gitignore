@@ -5,6 +5,7 @@ __pycache__/
 .idea/
 .env
 .env.local
+.env.docker
 .DS_Store
 
 alembic/versions/*.pyc
