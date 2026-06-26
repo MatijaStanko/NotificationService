@@ -7,6 +7,7 @@ from repositories.notification_request_repository import NotificationRequestRepo
 from services.channel_config_service import ChannelConfigService
 from services.notification_request_service import NotificationRequestService
 from services.notification_sender_service import NotificationSenderService
+from services.senders.sender_factory import SenderFactory
 from services.senders.email_sender import EmailSender
 
 
@@ -26,8 +27,10 @@ def get_notification_sender_service(
 
     email_sender = EmailSender()
 
+    sender_factory = SenderFactory(email_sender=email_sender)
+
     return NotificationSenderService(
         notification_request_service=notification_request_service,
         channel_config_service=channel_config_service,
-        email_sender=email_sender,
+        sender_factory=sender_factory,
     )
