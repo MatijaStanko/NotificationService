@@ -24,6 +24,14 @@ class INotificationTemplateService(ABC):
     def render_template(self, template : str | None, template_data : dict) -> str | None:
         pass
 
+    @abstractmethod
+    def get_all(self) -> list[NotificationTemplate]:
+        pass
+
+    @abstractmethod
+    def get_by_id(self, notification_template_id: int) -> NotificationTemplate:
+        pass
+
 
 class NotificationTemplateService(INotificationTemplateService):
     def __init__(self, notification_template_repository: NotificationTemplateRepository):
@@ -113,3 +121,16 @@ class NotificationTemplateService(INotificationTemplateService):
             )
 
         return rendered_template
+
+    def get_all(self) -> list[NotificationTemplate]:
+        return self.notification_template_repository.get_all()
+
+    def get_by_id(self, notification_template_id: int) -> NotificationTemplate:
+        notification_template = self.notification_template_repository.get_by_id(
+            notification_template_id
+        )
+
+        if notification_template is None:
+            raise ValueError("Notification template does not exist")
+
+        return notification_template

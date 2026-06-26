@@ -42,3 +42,32 @@ class NotificationFailedRequest(BaseModel):
 
 class DeleteAllNotificationRequestsResponse(BaseModel):
     deleted_count: int
+
+class NotificationTypeResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    code: str
+    is_active: bool
+
+
+class ChannelConfigResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    channel: str
+    provider: str
+    config: dict
+    is_active: bool
+
+
+class NotificationTemplateResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    notification_type_id: int
+    channel_id: int
+    subject_template: str | None
+    body_template: str
+    required_variables: dict
+    is_active: bool

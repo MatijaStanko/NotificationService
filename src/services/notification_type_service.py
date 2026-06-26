@@ -9,6 +9,14 @@ class INotificationTypeService(ABC):
     def get_active_by_code(self, code: str) -> NotificationType:
         pass
 
+    @abstractmethod
+    def get_all(self) -> list[NotificationType]:
+        pass
+
+    @abstractmethod
+    def get_by_id(self, notification_type_id: int) -> NotificationType:
+        pass
+
 class NotificationTypeService(INotificationTypeService):
     def __init__(self, notification_type_repository: NotificationTypeRepository):
         self.notification_type_repository = notification_type_repository
@@ -22,5 +30,18 @@ class NotificationTypeService(INotificationTypeService):
 
         if not notification_type.is_active:
             raise ValueError("Notification type is inactive")
+
+        return notification_type
+
+    def get_all(self) -> list[NotificationType]:
+        return self.notification_type_repository.get_all()
+
+    def get_by_id(self, notification_type_id: int) -> NotificationType:
+        notification_type = self.notification_type_repository.get_by_id(
+            notification_type_id
+        )
+
+        if notification_type is None:
+            raise ValueError("Notification type does not exist")
 
         return notification_type
