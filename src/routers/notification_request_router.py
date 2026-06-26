@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Body, Depends, Query, HTTPException
 
-from app.schemas import  NotificationCreate, NotificationDetailedResponse,  NotificationShortResponse, DeleteAllNotificationRequestsResponse
+from app.schemas import  NotificationCreate, NotificationDetailedResponse, DeleteAllNotificationRequestsResponse
 
-from dependencies.notification_request_dependencies import get_notification_request_service, get_notification_service
+from dependencies.notification_request_dependencies import get_notification_request_service, get_notification_orchestration_service
 from services.notification_request_service import NotificationRequestService
-from services.notification_service import NotificationService
+from services.notification_orchestration_service import NotificationOrchestrationService
 
 
 router = APIRouter(
@@ -15,8 +15,8 @@ router = APIRouter(
 
 @router.post(
     "/",
-    response_model=NotificationShortResponse,
-    summary="Create notification request",
+    response_model=NotificationDetailedResponse,
+    summary="Create and send notification request",
 )
 def create_notification(
     notification_data: NotificationCreate = Body(
@@ -31,11 +31,11 @@ def create_notification(
             },
         }
     ),
-    notification_service : NotificationService = Depends(get_notification_service),
+    notification_orchestration_service: NotificationOrchestrationService = Depends(get_notification_orchestration_service),
 ):
     try:
-        notification_request = notification_service.create_notification(
-            notification_data
+        notification_request = notification_orchestration_service.create_and_send_notification(
+            notification_data = notification_data
         )
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))

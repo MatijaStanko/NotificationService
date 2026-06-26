@@ -4,17 +4,18 @@ from fastapi import FastAPI
 
 
 from app.config import settings
-from app.database import create_db_and_tables
+from app.db_seed import seed_database
 from routers import notification_request_router, notification_sending_router, notification_status_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-#    create_db_and_tables()
+    seed_database()
     yield
 app = FastAPI(
     title = settings.app_name,
     version = settings.app_version,
-    debug = settings.debug
+    debug = settings.debug,
+    lifespan=lifespan
 )
 
 @app.get("/health")

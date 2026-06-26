@@ -12,7 +12,7 @@ class INotificationRequestService(ABC):
         pass
 
     @abstractmethod
-    def get_pending_request(self, limit: int) -> type[NotificationRequest]:
+    def get_pending_requests(self, limit: int) -> type[NotificationRequest]:
         pass
 
     @abstractmethod

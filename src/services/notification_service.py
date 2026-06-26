@@ -7,14 +7,14 @@ from services.notification_template_service import NotificationTemplateService
 from services.channel_config_service import ChannelConfigService
 from services.notification_request_service import NotificationRequestService
 
-class INotificationSenderService(ABC):
+class INotificationService(ABC):
 
     @abstractmethod
     def create_notification(self, data : NotificationCreate) -> NotificationRequest:
         pass
 
 
-class NotificationService(INotificationSenderService):
+class NotificationService(INotificationService):
     def __init__(
             self,
             notification_request_service: NotificationRequestService,
