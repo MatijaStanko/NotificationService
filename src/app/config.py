@@ -8,9 +8,12 @@ class Settings(BaseSettings):
 
     database_url: str
 
+    mailtrap_username: str | None = None
+    mailtrap_password: str | None = None
+
     model_config =  SettingsConfigDict(
         env_file=".env",
-        env_file_encoding="utf-8"
+        env_file_encoding="utf-8",
     )
 
 settings = Settings()
