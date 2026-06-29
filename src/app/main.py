@@ -14,6 +14,8 @@ from routers import (
     notification_template_router,
 )
 
+from middleware.notification_logging_middleware import NotificationLoggingMiddleware
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     seed_database()
@@ -24,6 +26,8 @@ app = FastAPI(
     debug = settings.debug,
     lifespan=lifespan
 )
+
+app.add_middleware(NotificationLoggingMiddleware)
 
 @app.get("/health")
 def health_check():

@@ -12,3 +12,4 @@ email-validator
 pydantic[email]
 
 alembic
+starlette
