@@ -8,7 +8,7 @@ Aplikacija omogućava prijem, kreiranje, čuvanje i slanje notifikacija
 različitim kanalima.
 
 Servis funkcioniše tako što primi zahtev od nekog eksternog sistema, 
-proverava tip notifikacije i i kanal slanja, pronalazi odgovarajući
+proverava tip notifikacije i kanal slanja, pronalazi odgovarajući
 template, renderuje sadržaj poruke, čuva zahtev u bazi i pokušava da
 pošalje notifikaciju pomoću odgovarajućeg sendera.
 
@@ -32,7 +32,7 @@ Pri izradi projekta korišćene su sledeće tehnologije:
 
 ## 3. Arhitektura aplikacije
 
-Aplikacija je organiyovana po slojevima kako bi se jasno razdvojile 
+Aplikacija je organizovana po slojevima kako bi se jasno razdvojile 
 odgovornosti izmedju API ruta, poslovne logike, pristupa bazi i 
 konkretnih implementacija slanja notifikacija.
 
@@ -81,7 +81,7 @@ Opis glavnih foldera:
 
 #### Router sloj
 
-Router sloj prima HTTP zahteve, validira ulayne podatke i poyiva odgovarjući servis.
+Router sloj prima HTTP zahteve, validira ulazne podatke i poziva odgovarjući servis.
 
 Primeri router-a:
 
@@ -98,7 +98,7 @@ U Service sloju implementirana je poslovna logika aplikacije.
 
 - `notification_service.py` - kreira notification request tako što proverava
 da li postoji odgovarajući tip notifikacije, kanal i template, proverava 
-required variables, renderuje template, ubacuje notification request u bayu i šalje
+required variables, renderuje template, ubacuje notification request u bazu i šalje
 njen ID NotificationSenderService-u.
 
 - `notification_sender_service.py` - na osnovu dobijenog ID-a pristupa
@@ -122,11 +122,11 @@ koji predstavljaju repository klase.
 
 #### Sender sloj
 
-Sender sloj sluyi ya konkretno slanje notifikacija. BaseSender je 
+Sender sloj sluzi za konkretno slanje notifikacija. BaseSender je 
 apstraktna klasa koju nasledjuje svaki drugi sender. SenderFactory u 
 zavisnosti od zahteva koji pročita u NotificationRequest-u,
 vraca odgovarajući sender NotificationSenderServiceu koji nakon toga
-nad datim senderom poyiva metod send. Sama logika slanja za 
+nad datim senderom poziva metod send. Sama logika slanja za 
 razlicite sendere implementirana je u okviru sender klasa i metoda send.
 Za sada je implementirana samo klasa EmailSender ali plan je da se proširi.
 
@@ -247,7 +247,7 @@ SMTP / Mailtrap
 ### Koraci obrade zahteva
 
 1. Klijent šalje `POST /notification` zahtev sa podacima o notifikaciji.
-2. Router prima zahtev i validira osnovnu strukturu podataka pomoću Pzdantic schema.
+2. Router prima zahtev i validira osnovnu strukturu podataka pomoću Pydantic schema.
 3. `NotificationOrchestrationService` prima podatke o notifikaciji od rutera i poziva metodu za kreiranje i slanje notifikacije.
 4. `NotificationService` proverava da li postoji aktivan `notification_type` na osnovu vrednosti `notification_type` iz request-a, a pomoću `NotificationTypeService`.
 5. `NotificationService` proverava da li postoji aktivna konfiguracija kanala u tabeli `channel_configs` pomoću `ChannelConfigService`
@@ -351,7 +351,7 @@ Primeri validacionih grešaka:
 
 - nepostojeći `notification_type`
 - nepostojeći kanal
-- neaktivan kanal
+- neaktivan kanal, tip notifikacije ili template
 - nedostaju obavezne promenljive iz `template_data`
 - nevalidan email format
 
@@ -503,7 +503,7 @@ GET /notification-templates/{id}
 
 ## 9. Pokretanje pomoću Docker-a
 
-Aplikacija se pokree pomoću Docker Compose-a.
+Aplikacija se pokrece pomoću Docker Compose-a.
 
 Docker Compose pokreće dva glavna servisa:
 
@@ -512,8 +512,8 @@ db   → PostgreSQL baza podataka
 app  → FastAPI aplikacija
 ```
 
-FastAPI apliacija se pokreće u posebnom Docker container-u i poveyuje se sa PostgreSQL
-bazon, koja je podignuta u drugom Docker container-u, preko Docker mreže.
+FastAPI apliacija se pokreće u posebnom Docker container-u i povezuje se sa PostgreSQL
+bazom, koja je podignuta u drugom Docker container-u, preko Docker mreže.
 
 ### Environment konfiguracija za Docker
 
@@ -606,7 +606,7 @@ docker compose logs db
 
 Trenutno je implementirano slanje notifikacija za `email` kanal.
 
-Email notifikacije se šalju preko SMTP protokola, adok se u razvojnom okruženju za testiranje
+Email notifikacije se šalju preko SMTP protokola, dok se u razvojnom okruženju za testiranje
 koristi Mailtrap.
 
 Konfiguracija email kanala čuva se u tabeli `channel_configs`, u JSONB koloni `config`.
@@ -639,14 +639,11 @@ MAILTRAP_USERNAME=your_mailtrap_username
 MAILTRAP_PASSWORD=your_mailtrap_password
 ```
 
-Ovi fajlovi se ne commituju na GitHub.
-
 Za slanje email poruka koristi se `EmailSender`, koji čita SMTP konfiguraciju iz `channel_configs`, uzima kredencijale iz environment promenljivih i šalje poruku preko SMTP servera.
 
 Poruke poslate kroz Mailtrap ne stižu u pravi inbox korisnika, već se prikazuju u Mailtrap test inbox-u.
 
 ## 11. Logging
-## Logging
 
 Aplikacija koristi middleware za logovanje zahteva za kreiranje notifikacija.
 
@@ -702,9 +699,9 @@ Aplikacija izlaže REST API endpoint-e za kreiranje, slanje, pregled i upravljan
 | Metoda | Endpoint | Opis |
 |---|---|---|
 | `POST` | `/notifications` | Kreira notification request i odmah pokušava da pošalje notifikaciju. |
-| `GET` | `/notifications/{id}` | Vraća detalje jednog notification request-a. |
+| `GET` | `/notifications/{id}` | Vraća detalje notification request-a sa prosledjenim ID-em. |
 | `GET` | `/notifications/pending` | Vraća notification request-ove sa statusom `pending`. |
-| `DELETE` | `/notifications/{id}` | Briše jedan notification request. |
+| `DELETE` | `/notifications/{id}` | Briše notification request sa prosledjenim ID-em. |
 | `DELETE` | `/notifications` | Briše sve notification request-ove. |
 
 ### Slanje notifikacija
@@ -804,6 +801,31 @@ Primer uspešnog odgovora:
 }
 ```
 
+Primer uspesnog odgovora:
+
+```json
+{
+  "id": 30,
+  "source_service": "auth-service",
+  "notification_type_id": 2,
+  "template_id": 4,
+  "channel": "email",
+  "recipient": "matija@example.com",
+  "template_data": {
+    "first_name": "Matija",
+    "reset_link": "https://example.com/reset-password/token123",
+    "expiration_minutes": "15"
+  },
+  "rendered_subject": "Reset lozinke",
+  "rendered_body": "Zdravo Matija, primili smo zahtev za reset lozinke. Link za reset je: https://example.com/reset-password/token123. Link važi 15 minuta.",
+  "status": "sent",
+  "error_msg": null,
+  "created_at": "2026-06-30T09:33:40.083398",
+  "sent_at": "2026-06-30T09:33:42.056280",
+  "updated_at": "2026-06-30T09:33:42.056290"
+}
+```
+
 ### Payment success
 
 ```json
@@ -818,6 +840,31 @@ Primer uspešnog odgovora:
     "currency": "RSD",
     "transaction_id": "TX-2026-001"
   }
+}
+```
+
+Primer uspesnog odgovora:
+```json
+{
+  "id": 29,
+  "source_service": "payment-service",
+  "notification_type_id": 3,
+  "template_id": 7,
+  "channel": "email",
+  "recipient": "matija@example.com",
+  "template_data": {
+    "amount": "2500",
+    "currency": "RSD",
+    "first_name": "Matija",
+    "transaction_id": "TX-2026-001"
+  },
+  "rendered_subject": "Uplata je uspešno evidentirana",
+  "rendered_body": "Zdravo Matija, vaša uplata od 2500 RSD je uspešno evidentirana. ID transakcije: TX-2026-001.",
+  "status": "sent",
+  "error_msg": null,
+  "created_at": "2026-06-30T09:32:34.953909",
+  "sent_at": "2026-06-30T09:32:36.956880",
+  "updated_at": "2026-06-30T09:32:36.956895"
 }
 ```
 
@@ -837,6 +884,31 @@ Primer uspešnog odgovora:
   }
 }
 ```
+Primer uspesnog odgovora:
+
+```json
+{
+  "id": 31,
+  "source_service": "appointment-service",
+  "notification_type_id": 4,
+  "template_id": 10,
+  "channel": "email",
+  "recipient": "matija@example.com",
+  "template_data": {
+    "location": "Beograd, Bulevar kralja Aleksandra 73",
+    "first_name": "Matija",
+    "appointment_date": "2026-06-30",
+    "appointment_time": "14:30"
+  },
+  "rendered_subject": "Podsetnik za zakazani termin",
+  "rendered_body": "Zdravo Matija, podsećamo vas da imate zakazan termin 2026-06-30 u 14:30. Lokacija: Beograd, Bulevar kralja Aleksandra 73.",
+  "status": "sent",
+  "error_msg": null,
+  "created_at": "2026-06-30T09:34:35.270239",
+  "sent_at": "2026-06-30T09:34:37.177935",
+  "updated_at": "2026-06-30T09:34:37.177952"
+}
+```
 
 ### System alert
 
@@ -852,6 +924,31 @@ Primer uspešnog odgovora:
     "timestamp": "2026-06-29T12:45:00",
     "message": "Database connection timeout"
   }
+}
+```
+Primer uspesnog odgovora:
+
+```json
+{
+  "id": 33,
+  "source_service": "monitoring-service",
+  "notification_type_id": 5,
+  "template_id": 13,
+  "channel": "email",
+  "recipient": "admin@example.com",
+  "template_data": {
+    "message": "Database connection timeout",
+    "severity": "HIGH",
+    "timestamp": "2026-06-29T12:45:00",
+    "service_name": "payment-service"
+  },
+  "rendered_subject": "[HIGH] Alert iz servisa payment-service",
+  "rendered_body": "Servis: payment-service\nNivo: HIGH\nVreme: 2026-06-29T12:45:00\nPoruka: Database connection timeout",
+  "status": "sent",
+  "error_msg": null,
+  "created_at": "2026-06-30T09:35:57.361619",
+  "sent_at": "2026-06-30T09:35:59.236884",
+  "updated_at": "2026-06-30T09:35:59.236903"
 }
 ```
 
