@@ -8,7 +8,7 @@ class NotificationCreate(BaseModel):
     source_service: str | None = None
     channel: str
     notification_type: str
-    recipient: EmailStr
+    recipient: str
     template_data: dict[str, Any] = {}
 
 class NotificationShortResponse(BaseModel):

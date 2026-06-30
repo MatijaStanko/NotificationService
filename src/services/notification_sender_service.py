@@ -5,6 +5,10 @@ from services.senders.sender_factory import SenderFactory
 
 from abc import ABC, abstractmethod
 
+import logging
+
+logger = logging.getLogger("uvicorn.error")
+
 class INotificationSenderService(ABC):
     @abstractmethod
     def send_notification(
@@ -53,10 +57,20 @@ class NotificationSenderService(INotificationSenderService):
                 notification_request_id=notification_request_id
             )
 
+        # except Exception as error:
+        #     return self.notification_request_service.mark_as_failed(
+        #         notification_request_id=notification_request_id,
+        #         error_msg=str(error)
+        #     )
         except Exception as error:
+            logger.exception(
+                "Failed to send notification request with id=%s",
+                notification_request_id,
+            )
+
             return self.notification_request_service.mark_as_failed(
                 notification_request_id=notification_request_id,
-                error_msg=str(error)
+                error_msg=str(error),
             )
 
     def process_pending_notifications(self, limit: int = 10) -> list[NotificationRequest]:
