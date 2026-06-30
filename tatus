@@ -1,0 +1,271 @@
+[1mdiff --git a/alembic/versions/b0cda2736db2_update_teams_channel_config.py b/alembic/versions/b0cda2736db2_update_teams_channel_config.py[m
+[1mnew file mode 100644[m
+[1mindex 0000000..b6973ee[m
+[1m--- /dev/null[m
+[1m+++ b/alembic/versions/b0cda2736db2_update_teams_channel_config.py[m
+[36m@@ -0,0 +1,44 @@[m
+[32m+[m[32m"""Update teams channel config[m
+[32m+[m
+[32m+[m[32mRevision ID: b0cda2736db2[m
+[32m+[m[32mRevises: 4b249853fb1b[m
+[32m+[m[32mCreate Date: 2026-06-30 10:41:17.749381[m
+[32m+[m
+[32m+[m[32m"""[m
+[32m+[m[32mfrom typing import Sequence, Union[m
+[32m+[m
+[32m+[m[32mfrom alembic import op[m
+[32m+[m[32mimport sqlalchemy as sa[m
+[32m+[m
+[32m+[m
+[32m+[m[32m# revision identifiers, used by Alembic.[m
+[32m+[m[32mrevision: str = 'b0cda2736db2'[m
+[32m+[m[32mdown_revision: Union[str, Sequence[str], None] = '4b249853fb1b'[m
+[32m+[m[32mbranch_labels: Union[str, Sequence[str], None] = None[m
+[32m+[m[32mdepends_on: Union[str, Sequence[str], None] = None[m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef upgrade() -> None:[m
+[32m+[m[32m    op.execute([m
+[32m+[m[32m        """[m
+[32m+[m[32m        UPDATE channel_configs[m
+[32m+[m[32m        SET config = '{[m
+[32m+[m[32m                "webhook_url_env": "TEAMS_WEBHOOK_URL"[m
+[32m+[m[32m            }'::jsonb,[m
+[32m+[m[32m            provider = 'webhook',[m
+[32m+[m[32m            is_active = true[m
+[32m+[m[32m        WHERE channel = 'teams';[m
+[32m+[m[32m        """[m
+[32m+[m[32m    )[m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef downgrade() -> None:[m
+[32m+[m[32m    op.execute([m
+[32m+[m[32m        """[m
+[32m+[m[32m        UPDATE channel_configs[m
+[32m+[m[32m        SET config    = '{}',[m
+[32m+[m[32m            provider  = 'webhook',[m
+[32m+[m[32m            is_active = false[m
+[32m+[m[32m        WHERE channel = 'teams';[m
+[32m+[m[32m        """[m
+[32m+[m[32m    )[m
+[1mdiff --git a/requirements.txt b/requirements.txt[m
+[1mindex 0e82070..1ccd686 100644[m
+[1m--- a/requirements.txt[m
+[1m+++ b/requirements.txt[m
+[36m@@ -12,4 +12,5 @@[m [memail-validator[m
+ pydantic[email][m
+ [m
+ alembic[m
+[31m-starlette[m
+\ No newline at end of file[m
+[32m+[m[32mstarlette[m
+[32m+[m[32mrequests[m
+\ No newline at end of file[m
+[1mdiff --git a/src/app/schemas.py b/src/app/schemas.py[m
+[1mindex fc80ae9..09fcf17 100644[m
+[1m--- a/src/app/schemas.py[m
+[1m+++ b/src/app/schemas.py[m
+[36m@@ -8,7 +8,7 @@[m [mclass NotificationCreate(BaseModel):[m
+     source_service: str | None = None[m
+     channel: str[m
+     notification_type: str[m
+[31m-    recipient: EmailStr[m
+[32m+[m[32m    recipient: str[m
+     template_data: dict[str, Any] = {}[m
+ [m
+ class NotificationShortResponse(BaseModel):[m
+[1mdiff --git a/src/dependencies/notification_sending_dependencies.py b/src/dependencies/notification_sending_dependencies.py[m
+[1mindex 4c2b557..e915f47 100644[m
+[1m--- a/src/dependencies/notification_sending_dependencies.py[m
+[1m+++ b/src/dependencies/notification_sending_dependencies.py[m
+[36m@@ -9,6 +9,7 @@[m [mfrom services.notification_request_service import NotificationRequestService[m
+ from services.notification_sender_service import NotificationSenderService[m
+ from services.senders.sender_factory import SenderFactory[m
+ from services.senders.email_sender import EmailSender[m
+[32m+[m[32mfrom services.senders.teams_sender import TeamsSender[m
+ [m
+ [m
+ def get_notification_sender_service([m
+[36m@@ -26,8 +27,12 @@[m [mdef get_notification_sender_service([m
+     )[m
+ [m
+     email_sender = EmailSender()[m
+[32m+[m[32m    teams_sender = TeamsSender()[m
+ [m
+[31m-    sender_factory = SenderFactory(email_sender=email_sender)[m
+[32m+[m[32m    sender_factory = SenderFactory([m
+[32m+[m[32m        email_sender=email_sender,[m
+[32m+[m[32m        teams_sender=teams_sender,[m
+[32m+[m[32m    )[m
+ [m
+     return NotificationSenderService([m
+         notification_request_service=notification_request_service,[m
+[1mdiff --git a/src/services/notification_sender_service.py b/src/services/notification_sender_service.py[m
+[1mindex cdee012..7a6ea79 100644[m
+[1m--- a/src/services/notification_sender_service.py[m
+[1m+++ b/src/services/notification_sender_service.py[m
+[36m@@ -5,6 +5,10 @@[m [mfrom services.senders.sender_factory import SenderFactory[m
+ [m
+ from abc import ABC, abstractmethod[m
+ [m
+[32m+[m[32mimport logging[m
+[32m+[m
+[32m+[m[32mlogger = logging.getLogger("uvicorn.error")[m
+[32m+[m
+ class INotificationSenderService(ABC):[m
+     @abstractmethod[m
+     def send_notification([m
+[36m@@ -53,10 +57,20 @@[m [mclass NotificationSenderService(INotificationSenderService):[m
+                 notification_request_id=notification_request_id[m
+             )[m
+ [m
+[32m+[m[32m        # except Exception as error:[m
+[32m+[m[32m        #     return self.notification_request_service.mark_as_failed([m
+[32m+[m[32m        #         notification_request_id=notification_request_id,[m
+[32m+[m[32m        #         error_msg=str(error)[m
+[32m+[m[32m        #     )[m
+         except Exception as error:[m
+[32m+[m[32m            logger.exception([m
+[32m+[m[32m                "Failed to send notification request with id=%s",[m
+[32m+[m[32m                notification_request_id,[m
+[32m+[m[32m            )[m
+[32m+[m
+             return self.notification_request_service.mark_as_failed([m
+                 notification_request_id=notification_request_id,[m
+[31m-                error_msg=str(error)[m
+[32m+[m[32m                error_msg=str(error),[m
+             )[m
+ [m
+     def process_pending_notifications(self, limit: int = 10) -> list[NotificationRequest]:[m
+[1mdiff --git a/src/services/senders/sender_factory.py b/src/services/senders/sender_factory.py[m
+[1mindex 7fa76a3..e3f15d2 100644[m
+[1m--- a/src/services/senders/sender_factory.py[m
+[1m+++ b/src/services/senders/sender_factory.py[m
+[36m@@ -1,14 +1,17 @@[m
+ from services.senders.base_sender import BaseSender[m
+ from services.senders.email_sender import EmailSender[m
+[32m+[m[32mfrom services.senders.teams_sender import TeamsSender[m
+ [m
+ [m
+ class SenderFactory:[m
+     def __init__([m
+         self,[m
+         email_sender: EmailSender,[m
+[32m+[m[32m            teams_sender: TeamsSender,[m
+     ):[m
+         self.senders: dict[str, BaseSender] = {[m
+             "email": email_sender,[m
+[32m+[m[32m            "teams": teams_sender,[m
+         }[m
+ [m
+     def get_sender([m
+[1mdiff --git a/src/services/senders/teams_sender.py b/src/services/senders/teams_sender.py[m
+[1mnew file mode 100644[m
+[1mindex 0000000..0311546[m
+[1m--- /dev/null[m
+[1m+++ b/src/services/senders/teams_sender.py[m
+[36m@@ -0,0 +1,103 @@[m
+[32m+[m[32mimport os[m
+[32m+[m[32mimport json[m
+[32m+[m[32mimport requests[m
+[32m+[m
+[32m+[m[32mfrom app.models import ChannelConfig, NotificationRequest[m
+[32m+[m[32mfrom services.senders.base_sender import BaseSender[m
+[32m+[m
+[32m+[m[32mclass TeamsSender(BaseSender):[m
+[32m+[m[32m    def send([m
+[32m+[m[32m            self,[m
+[32m+[m[32m            notification_request: NotificationRequest,[m
+[32m+[m[32m            channel_config: ChannelConfig,[m
+[32m+[m[32m    ) -> None:[m
+[32m+[m[32m        config = self._get_config(channel_config)[m
+[32m+[m
+[32m+[m[32m        webhook_url_env = config.get("webhook_url_env")[m
+[32m+[m
+[32m+[m[32m        if not webhook_url_env:[m
+[32m+[m[32m            raise ValueError("Teams webhook_url_env is not configured")[m
+[32m+[m
+[32m+[m[32m        webhook_url = os.getenv(webhook_url_env)[m
+[32m+[m
+[32m+[m[32m        if not webhook_url:[m
+[32m+[m[32m            raise ValueError(f"{webhook_url_env} is not configured in environment variables")[m
+[32m+[m
+[32m+[m[32m        payload = self._build_payload(notification_request)[m
+[32m+[m
+[32m+[m[32m        response = requests.post([m
+[32m+[m[32m            webhook_url,[m
+[32m+[m[32m            json=payload,[m
+[32m+[m[32m            timeout=10,[m
+[32m+[m[32m        )[m
+[32m+[m
+[32m+[m[32m        if response.status_code < 200 or response.status_code >= 300:[m
+[32m+[m[32m            raise ValueError([m
+[32m+[m[32m                f"Teams webhook request failed with status {response.status_code}: {response.text}"[m
+[32m+[m[32m            )[m
+[32m+[m
+[32m+[m[32m    def _get_config([m
+[32m+[m[32m            self,[m
+[32m+[m[32m            channel_config: ChannelConfig,[m
+[32m+[m[32m    ) -> dict:[m
+[32m+[m[32m        config = channel_config.config[m
+[32m+[m
+[32m+[m[32m        if isinstance(config, dict):[m
+[32m+[m[32m            return config[m
+[32m+[m
+[32m+[m[32m        if isinstance(config, str):[m
+[32m+[m[32m            try:[m
+[32m+[m[32m                parsed_config = json.loads(config)[m
+[32m+[m[32m            except json.JSONDecodeError:[m
+[32m+[m[32m                raise ValueError("Teams channel config is not valid JSON")[m
+[32m+[m
+[32m+[m[32m            if not isinstance(parsed_config, dict):[m
+[32m+[m[32m                raise ValueError("Teams channel config must be a JSON object")[m
+[32m+[m
+[32m+[m[32m            return parsed_config[m
+[32m+[m
+[32m+[m[32m        raise ValueError("Teams channel config has invalid format")[m
+[32m+[m
+[32m+[m[32m    def _build_payload([m
+[32m+[m[32m            self,[m
+[32m+[m[32m            notification_request: NotificationRequest,[m
+[32m+[m[32m    ) -> dict:[m
+[32m+[m[32m        title = notification_request.rendered_subject or "Notification"[m
+[32m+[m[32m        text = notification_request.rendered_body or ""[m
+[32m+[m
+[32m+[m[32m        return {[m
+[32m+[m[32m            "type": "AdaptiveCard",[m
+[32m+[m[32m            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",[m
+[32m+[m[32m            "version": "1.4",[m
+[32m+[m[32m            "body": [[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    "type": "TextBlock",[m
+[32m+[m[32m                    "text": title,[m
+[32m+[m[32m                    "weight": "Bolder",[m
+[32m+[m[32m                    "size": "Medium",[m
+[32m+[m[32m                    "wrap": True,[m
+[32m+[m[32m                },[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    "type": "TextBlock",[m
+[32m+[m[32m                    "text": text,[m
+[32m+[m[32m                    "wrap": True,[m
+[32m+[m[32m                },[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    "type": "FactSet",[m
+[32m+[m[32m                    "facts": [[m
+[32m+[m[32m                        {[m
+[32m+[m[32m                            "title": "Source service",[m
+[32m+[m[32m                            "value": notification_request.source_service or "-",[m
+[32m+[m[32m                        },[m
+[32m+[m[32m                        {[m
+[32m+[m[32m                            "title": "Channel",[m
+[32m+[m[32m                            "value": notification_request.channel,[m
+[32m+[m[32m                        },[m
+[32m+[m[32m                        {[m
+[32m+[m[32m                            "title": "Recipient",[m
+[32m+[m[32m                            "value": notification_request.recipient,[m
+[32m+[m[32m                        },[m
+[32m+[m[32m                    ],[m
+[32m+[m[32m                },[m
+[32m+[m[32m            ],[m
+[32m+[m[32m        }[m
+\ No newline at end of file[m
