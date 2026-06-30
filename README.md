@@ -738,8 +738,6 @@ http://localhost:8000/docs
 
 ## 13. Primeri request-ova
 
-## Primeri zahteva
-
 U nastavku su prikazani primeri zahteva za glavni endpoint:
 
 ```text
