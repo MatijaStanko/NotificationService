@@ -1,20 +1,11 @@
 import os
 import smtplib
 from email.message import EmailMessage
-from app.config import settings
 
 from app.models import NotificationRequest, ChannelConfig
 from services.senders.base_sender import BaseSender
 
 class EmailSender(BaseSender):
-    def _get_setting_value(self, env_name: str) -> str:
-        setting_name = env_name.lower()
-        value = getattr(settings, setting_name, None)
-
-        if not value:
-            raise ValueError(f"{env_name} is not configured in .env")
-
-        return value
 
     def send(
             self,
@@ -48,8 +39,8 @@ class EmailSender(BaseSender):
         if not use_tls:
             raise ValueError("SMTP use_tls is not configured")
 
-        username = self._get_setting_value(username_env)
-        password = self._get_setting_value(password_env)
+        username = os.getenv(username_env)
+        password = os.getenv(password_env)
 
         if not username:
             raise ValueError("MAILTRAP_USERNAME is not configured in .env")

@@ -1,5 +1,4 @@
 import os
-import json
 import requests
 
 from app.models import ChannelConfig, NotificationRequest
@@ -11,7 +10,7 @@ class TeamsSender(BaseSender):
             notification_request: NotificationRequest,
             channel_config: ChannelConfig,
     ) -> None:
-        config = self._get_config(channel_config)
+        config = channel_config.config
 
         webhook_url_env = config.get("webhook_url_env")
 
@@ -35,28 +34,6 @@ class TeamsSender(BaseSender):
             raise ValueError(
                 f"Teams webhook request failed with status {response.status_code}: {response.text}"
             )
-
-    def _get_config(
-            self,
-            channel_config: ChannelConfig,
-    ) -> dict:
-        config = channel_config.config
-
-        if isinstance(config, dict):
-            return config
-
-        if isinstance(config, str):
-            try:
-                parsed_config = json.loads(config)
-            except json.JSONDecodeError:
-                raise ValueError("Teams channel config is not valid JSON")
-
-            if not isinstance(parsed_config, dict):
-                raise ValueError("Teams channel config must be a JSON object")
-
-            return parsed_config
-
-        raise ValueError("Teams channel config has invalid format")
 
     def _build_payload(
             self,
